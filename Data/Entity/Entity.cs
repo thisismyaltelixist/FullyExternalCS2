@@ -55,6 +55,14 @@ public class Entity : EntityBase
         {
             return IntPtr.Zero;
         }
+        return listEntry != IntPtr.Zero
+            ? gameProcess.Process.Read<IntPtr>(listEntry + 120 * (_index & 0x1FF))
+            : IntPtr.Zero;
+    }
+
+    protected override IntPtr ReadAddressBase(GameProcess gameProcess)
+    {
+        if (gameProcess?.Process == null) return IntPtr.Zero;
 
         var playerPawn = gameProcess.Process.Read<int>(ControllerBase + Offsets.m_hPawn);
         var pawnIndex = (playerPawn & 0x7FFF) >> 9;
@@ -80,8 +88,6 @@ public class Entity : EntityBase
         FlashAlpha = gameProcess.Process.Read<int>(AddressBase + Offsets.m_flFlashDuration);
         Name = gameProcess.Process.ReadString(ControllerBase + Offsets.m_iszPlayerName);
         
-
-        // ✅ Read spectator-related field
         ObserverTarget = gameProcess.Process.Read<int>(AddressBase + Offsets.m_hObserverTarget);
 
         return !IsAlive() || UpdateBonePositions(gameProcess);
@@ -91,10 +97,7 @@ public class Entity : EntityBase
     {
         try
         {
-            if (gameProcess?.Process == null)
-            {
-                return false;
-            }
+            if (gameProcess?.Process == null) return false;
 
             var gameSceneNode = gameProcess.Process.Read<IntPtr>(AddressBase + Offsets.m_pGameSceneNode);
             var boneArray = gameProcess.Process.Read<IntPtr>(gameSceneNode + Offsets.m_modelState + 128);
