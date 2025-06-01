@@ -55,21 +55,10 @@ public class Entity : EntityBase
         {
             return IntPtr.Zero;
         }
+        var entryIndex = (_index & 0x7FFF) >> 9;
+        var listEntry = gameProcess.Process.Read<IntPtr>(EntityList + (8 * entryIndex) + 16);
         return listEntry != IntPtr.Zero
             ? gameProcess.Process.Read<IntPtr>(listEntry + 120 * (_index & 0x1FF))
-            : IntPtr.Zero;
-    }
-
-    protected override IntPtr ReadAddressBase(GameProcess gameProcess)
-    {
-        if (gameProcess?.Process == null) return IntPtr.Zero;
-
-        var playerPawn = gameProcess.Process.Read<int>(ControllerBase + Offsets.m_hPawn);
-        var pawnIndex = (playerPawn & 0x7FFF) >> 9;
-        var listEntry = gameProcess.Process.Read<IntPtr>(EntityList + 0x8 * pawnIndex + 16);
-
-        return listEntry != IntPtr.Zero 
-            ? gameProcess.Process.Read<IntPtr>(listEntry + 120 * (playerPawn & 0x1FF)) 
             : IntPtr.Zero;
     }
 
